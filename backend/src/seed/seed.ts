@@ -170,7 +170,7 @@ async function seed() {
       name: "Class 11",
       section: "A",
       subject: "Computer Science",
-      teacher: null,
+      teacher: teachers[9]._id,
     },
     {
       name: "Class 12",
@@ -259,7 +259,7 @@ async function seed() {
   for (let dayOffset = 0; dayOffset < 30; dayOffset += 1) {
     const date = new Date(Date.now() - dayOffset * 24 * 60 * 60 * 1000);
 
-    for (const cls of classes.slice(0, 6)) {
+    for (const cls of classes) {
       const studentIds = classStudentMap.get(String(cls._id)) || [];
 
       if (!cls.teacher) continue;
