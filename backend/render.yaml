@@ -3,15 +3,14 @@ services:
     name: edumanage-backend
     env: node
     rootDir: backend
-    buildCommand: npm ci; npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     plan: free
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 5000
       - key: MONGO_URI
         sync: false
       - key: JWT_ACCESS_SECRET
@@ -22,5 +21,5 @@ services:
         value: 15m
       - key: REFRESH_TOKEN_EXPIRES_IN
         value: 7d
-      - key: FRONTEND_URL
+      - key: FRONTEND_URLS
         sync: false

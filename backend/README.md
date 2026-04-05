@@ -21,6 +21,12 @@ Copy `.env.example` to `.env` and configure:
 - `FRONTEND_URL`
 - `FRONTEND_URLS` (comma-separated allowlist, recommended for Vercel preview + production domains)
 
+For Render deployment:
+- Do not hardcode `PORT` (Render injects it automatically).
+- Set `FRONTEND_URLS` to include all allowed frontend domains, for example:
+	- `https://your-project.vercel.app,https://your-project-git-main-yourteam.vercel.app`
+- Use `/health` as the health check path.
+
 ## API Base
 
 `/api/v1`
