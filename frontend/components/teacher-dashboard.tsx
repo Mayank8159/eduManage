@@ -1,16 +1,19 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 export function TeacherDashboard() {
+  const searchParams = useSearchParams();
   const { token } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [classData, setClassData] = useState<any>(null);
   const [prediction, setPrediction] = useState<any>(null);
+  const activeSection = searchParams.get("section") || "dashboard";
 
   useEffect(() => {
     if (!token) return;
@@ -82,6 +85,7 @@ export function TeacherDashboard() {
         <p className="text-sm text-slate-500">Manage classes, attendance, marks, and AI insights.</p>
       </section>
 
+      {(activeSection === "dashboard" || activeSection === "classes") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <label className="text-sm font-medium text-slate-600">Assigned Class</label>
         <select
@@ -96,7 +100,9 @@ export function TeacherDashboard() {
           ))}
         </select>
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "attendance" || activeSection === "marks" || activeSection === "predictions") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Student Data</h3>
         <div className="space-y-3">
@@ -110,24 +116,28 @@ export function TeacherDashboard() {
               <div className="mt-2 flex flex-wrap gap-2">
                 <button
                   onClick={() => uploadAttendance(entry.student._id, "present")}
+                  disabled={activeSection === "marks"}
                   className="rounded-lg bg-teal-600 px-2 py-1 text-xs font-semibold text-white"
                 >
                   Mark Present
                 </button>
                 <button
                   onClick={() => uploadAttendance(entry.student._id, "absent")}
+                  disabled={activeSection === "marks"}
                   className="rounded-lg bg-rose-600 px-2 py-1 text-xs font-semibold text-white"
                 >
                   Mark Absent
                 </button>
                 <button
                   onClick={() => uploadMark(entry.student._id, Math.floor(Math.random() * 30 + 60))}
+                  disabled={activeSection === "attendance"}
                   className="rounded-lg bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
                 >
                   Upload Marks
                 </button>
                 <button
                   onClick={() => runPrediction(entry.student._id)}
+                  disabled={activeSection === "attendance" || activeSection === "marks"}
                   className="rounded-lg bg-amber-600 px-2 py-1 text-xs font-semibold text-white"
                 >
                   Simulate AI
@@ -137,7 +147,9 @@ export function TeacherDashboard() {
           ))}
         </div>
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "marks") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Class Marks Trend</h3>
         <div className="h-72">
@@ -158,8 +170,9 @@ export function TeacherDashboard() {
           </ResponsiveContainer>
         </div>
       </section>
+      ) : null}
 
-      {prediction ? (
+      {(activeSection === "dashboard" || activeSection === "predictions") && prediction ? (
         <section className="rounded-2xl bg-white p-4 shadow-sm">
           <h3 className="font-semibold text-slate-800">Simulation Result</h3>
           <p className="mt-2 text-sm text-slate-600">{prediction.student.name}</p>

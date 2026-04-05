@@ -1,16 +1,38 @@
 "use client";
 
 import { Bell, BookOpen, ChartNoAxesCombined, ClipboardCheck, LayoutDashboard, LogOut } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-const linksByRole = {
-  principal: ["Dashboard", "Teachers", "Students", "Reports", "Activity Logs"],
-  teacher: ["Dashboard", "Classes", "Attendance", "Marks", "Predictions"],
-  student: ["Dashboard", "My Reports", "Attendance", "Feedback"],
+const linksByRole: Record<string, Array<{ label: string; key: string }>> = {
+  principal: [
+    { label: "Dashboard", key: "dashboard" },
+    { label: "Teachers", key: "teachers" },
+    { label: "Students", key: "students" },
+    { label: "Reports", key: "reports" },
+    { label: "Activity Logs", key: "activity-logs" },
+  ],
+  teacher: [
+    { label: "Dashboard", key: "dashboard" },
+    { label: "Classes", key: "classes" },
+    { label: "Attendance", key: "attendance" },
+    { label: "Marks", key: "marks" },
+    { label: "Predictions", key: "predictions" },
+  ],
+  student: [
+    { label: "Dashboard", key: "dashboard" },
+    { label: "My Reports", key: "my-reports" },
+    { label: "Attendance", key: "attendance" },
+    { label: "Feedback", key: "feedback" },
+  ],
 };
 
 export function Sidebar() {
   const { session, logout } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeSection = searchParams.get("section") || "dashboard";
 
   if (!session) return null;
 
@@ -35,13 +57,21 @@ export function Sidebar() {
       </div>
 
       <ul className="space-y-2">
-        {linksByRole[session.user.role].map((label) => (
-          <li key={label} className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-300 hover:bg-slate-800">
-            {label === "Reports" || label === "My Reports" ? <ChartNoAxesCombined size={16} /> : null}
-            {label === "Classes" ? <BookOpen size={16} /> : null}
-            {label === "Attendance" ? <ClipboardCheck size={16} /> : null}
-            {label === "Dashboard" ? <LayoutDashboard size={16} /> : null}
-            {label === "Activity Logs" ? <Bell size={16} /> : null}
+        {linksByRole[session.user.role].map((link) => (
+          <li
+            key={link.key}
+            onClick={() => router.push(`/dashboard?section=${link.key}`)}
+            className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm transition ${
+              activeSection === link.key
+                ? "bg-cyan-400/20 font-semibold text-cyan-200"
+                : "text-slate-300 hover:bg-slate-800"
+            }`}
+          >
+            {link.label === "Reports" || link.label === "My Reports" ? <ChartNoAxesCombined size={16} /> : null}
+            {link.label === "Classes" ? <BookOpen size={16} /> : null}
+            {link.label === "Attendance" ? <ClipboardCheck size={16} /> : null}
+            {link.label === "Dashboard" ? <LayoutDashboard size={16} /> : null}
+            {link.label === "Activity Logs" ? <Bell size={16} /> : null}
             {![
               "Reports",
               "My Reports",
@@ -49,10 +79,10 @@ export function Sidebar() {
               "Attendance",
               "Dashboard",
               "Activity Logs",
-            ].includes(label)
+            ].includes(link.label)
               ? "•"
               : null}
-            <span>{label}</span>
+            <span>{link.label}</span>
           </li>
         ))}
       </ul>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -37,6 +38,7 @@ interface ClassItem {
 }
 
 export function PrincipalDashboard() {
+  const searchParams = useSearchParams();
   const { token } = useAuth();
   const [analytics, setAnalytics] = useState<TeacherAnalytics[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
@@ -55,6 +57,7 @@ export function PrincipalDashboard() {
   const [assignMap, setAssignMap] = useState<Record<string, string>>({});
   const [actionLoading, setActionLoading] = useState<string>("");
   const [message, setMessage] = useState("");
+  const activeSection = searchParams.get("section") || "dashboard";
 
   const teacherLimit = 8;
   const logLimit = 8;
@@ -68,7 +71,7 @@ export function PrincipalDashboard() {
         api.get("/principal/teacher-analytics", { headers }),
         api.get(`/principal/activity-logs?page=${logPage}&limit=${logLimit}`, { headers }),
         api.get(`/principal/users?role=teacher&page=${teacherPage}&limit=${teacherLimit}&search=${search}`, { headers }),
-        api.get("/principal/users?role=student&page=1&limit=1", { headers }),
+        api.get("/principal/users?role=student&page=1&limit=50", { headers }),
         api.get(`/principal/reports?type=${reportType}`, { headers }),
         api.get("/principal/activity-trend?days=7", { headers }),
         api.get("/principal/classes", { headers }),
@@ -162,6 +165,7 @@ export function PrincipalDashboard() {
         {message ? <p className="mt-2 text-sm font-medium text-cyan-700">{message}</p> : null}
       </header>
 
+      {(activeSection === "dashboard" || activeSection === "reports") ? (
       <section className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <StatCard title="Teachers" value={String(overview?.teachers || 0)} />
         <StatCard title="Approved" value={String(overview?.approvedTeachers || 0)} />
@@ -170,7 +174,9 @@ export function PrincipalDashboard() {
         <StatCard title="Classes" value={String(overview?.classes || classes.length)} />
         <StatCard title="Unassigned" value={String(overview?.unassignedClasses || 0)} />
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "teachers" || activeSection === "reports") ? (
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="min-w-0 rounded-2xl bg-white p-4 shadow-sm lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
@@ -211,7 +217,9 @@ export function PrincipalDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "reports") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Weekly Activity Trend</h3>
         <div className="h-72 min-w-0">
@@ -229,7 +237,9 @@ export function PrincipalDashboard() {
           </ResponsiveContainer>
         </div>
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "teachers") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">Teacher Control Panel</h3>
@@ -330,7 +340,37 @@ export function PrincipalDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
 
+      {activeSection === "students" ? (
+      <section className="rounded-2xl bg-white p-4 shadow-sm">
+        <h3 className="mb-3 font-semibold text-slate-800">Student Directory</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="py-2">Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student._id} className="border-b border-slate-100">
+                  <td className="py-2">{student.name}</td>
+                  <td>{student.email}</td>
+                  <td>{student.role}</td>
+                  <td>{student.isActive ? "Active" : "Inactive"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      ) : null}
+
+      {(activeSection === "dashboard" || activeSection === "activity-logs") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Recent Teacher Activity Logs</h3>
         <div className="space-y-2 text-sm text-slate-600">
@@ -362,6 +402,7 @@ export function PrincipalDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
     </div>
   );
 }

@@ -1,14 +1,17 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 export function StudentDashboard() {
+  const searchParams = useSearchParams();
   const { token } = useAuth();
   const [dashboard, setDashboard] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const activeSection = searchParams.get("section") || "dashboard";
 
   useEffect(() => {
     if (!token) return;
@@ -37,12 +40,15 @@ export function StudentDashboard() {
         <p className="text-sm text-slate-500">Track marks, attendance, and teacher feedback.</p>
       </section>
 
+      {(activeSection === "dashboard" || activeSection === "attendance") ? (
       <section className="grid gap-4 md:grid-cols-3">
         <Metric title="Attendance Ratio" value={`${dashboard?.insight?.attendanceRatio || 0}%`} />
         <Metric title="Marks Trend" value={`${dashboard?.insight?.marksTrend || 0}%`} />
         <Metric title="Prediction" value={dashboard?.insight?.predictionLabel || "-"} />
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "my-reports") ? (
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Performance Chart</h3>
         <div className="h-72">
@@ -63,7 +69,9 @@ export function StudentDashboard() {
           </ResponsiveContainer>
         </div>
       </section>
+      ) : null}
 
+      {(activeSection === "dashboard" || activeSection === "feedback") ? (
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <h3 className="mb-3 font-semibold text-slate-800">Teacher Feedback</h3>
@@ -90,6 +98,7 @@ export function StudentDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
     </div>
   );
 }
