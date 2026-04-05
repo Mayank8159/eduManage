@@ -54,18 +54,12 @@ router.get(
   })
 );
 
-const reportQuerySchema = z.object({
-  body: z.object({}),
-  params: z.object({}),
-  query: z.object({ type: z.enum(["weekly", "monthly"]).default("weekly") }),
-});
-
 router.get(
   "/reports",
-  validate(reportQuerySchema),
   asyncHandler(async (req, res) => {
-    const { type } = req.query as { type: "weekly" | "monthly" };
-    const report = await generateReport(type || "weekly");
+    const rawType = String(req.query.type || "weekly").toLowerCase();
+    const type: "weekly" | "monthly" = rawType === "monthly" ? "monthly" : "weekly";
+    const report = await generateReport(type);
     res.json(report);
   })
 );

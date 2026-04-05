@@ -41,14 +41,10 @@ router.get("/activity-logs", (0, asyncHandler_1.asyncHandler)(async (req, res) =
     ]);
     res.json({ items, pagination: { page: pagination.page, limit: pagination.limit, total } });
 }));
-const reportQuerySchema = zod_1.z.object({
-    body: zod_1.z.object({}),
-    params: zod_1.z.object({}),
-    query: zod_1.z.object({ type: zod_1.z.enum(["weekly", "monthly"]).default("weekly") }),
-});
-router.get("/reports", (0, validate_1.validate)(reportQuerySchema), (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-    const { type } = req.query;
-    const report = await (0, principal_service_1.generateReport)(type || "weekly");
+router.get("/reports", (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const rawType = String(req.query.type || "weekly").toLowerCase();
+    const type = rawType === "monthly" ? "monthly" : "weekly";
+    const report = await (0, principal_service_1.generateReport)(type);
     res.json(report);
 }));
 const approveSchema = zod_1.z.object({

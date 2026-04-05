@@ -28,16 +28,29 @@ export function PrincipalDashboard() {
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    void Promise.all([
+    void Promise.allSettled([
       api.get("/principal/teacher-analytics", { headers }),
       api.get("/principal/activity-logs?page=1&limit=8", { headers }),
       api.get("/principal/users?role=teacher&page=1&limit=20", { headers }),
       api.get(`/principal/reports?type=${reportType}`, { headers }),
-    ]).then(([analyticsRes, logsRes, teachersRes, reportRes]) => {
-      setAnalytics(analyticsRes.data);
-      setLogs(logsRes.data.items || []);
-      setTeachers(teachersRes.data.items || []);
-      setReport(reportRes.data);
+    ]).then((results) => {
+      const [analyticsRes, logsRes, teachersRes, reportRes] = results;
+
+      if (analyticsRes.status === "fulfilled") {
+        setAnalytics(analyticsRes.value.data || []);
+      }
+
+      if (logsRes.status === "fulfilled") {
+        setLogs(logsRes.value.data.items || []);
+      }
+
+      if (teachersRes.status === "fulfilled") {
+        setTeachers(teachersRes.value.data.items || []);
+      }
+
+      if (reportRes.status === "fulfilled") {
+        setReport(reportRes.value.data || null);
+      }
     });
   }, [token, reportType]);
 
@@ -62,7 +75,7 @@ export function PrincipalDashboard() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl bg-white p-4 shadow-sm lg:col-span-2">
+        <div className="min-w-0 rounded-2xl bg-white p-4 shadow-sm lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-semibold text-slate-800">Teacher Performance Analytics</h3>
             <select
@@ -75,7 +88,7 @@ export function PrincipalDashboard() {
             </select>
           </div>
 
-          <div className="h-80">
+          <div className="h-80 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analytics}>
                 <CartesianGrid strokeDasharray="3 3" />
