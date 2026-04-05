@@ -18,5 +18,8 @@ export const env = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET as string,
   accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
   refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
-  frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  frontendUrls: (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:3000")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean),
 };
