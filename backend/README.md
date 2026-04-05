@@ -19,6 +19,7 @@ Copy `.env.example` to `.env` and configure:
 - `ACCESS_TOKEN_EXPIRES_IN`
 - `REFRESH_TOKEN_EXPIRES_IN`
 - `FRONTEND_URL`
+- `FRONTEND_URLS` (comma-separated allowlist, recommended for Vercel preview + production domains)
 
 ## API Base
 

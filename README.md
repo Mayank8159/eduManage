@@ -156,11 +156,16 @@ GitHub Actions workflow in .github/workflows/ci.yml:
 
 ### Frontend on Vercel
 
-1. Import frontend as project in Vercel.
-2. Set environment variable:
+1. Import this GitHub repository in Vercel.
+2. In Vercel project settings, set Root Directory to `frontend`.
+3. Set environment variable:
    - NEXT_PUBLIC_API_URL=https://<your-backend-domain>/api/v1
-3. Build command: npm run build
-4. Output handled automatically by Next.js.
+4. Build command: npm run build
+5. Output handled automatically by Next.js.
+
+For preview deployments, make sure backend CORS allowlist includes your Vercel domain(s):
+- https://<your-project>.vercel.app
+- https://<your-project>-<branch>-<team>.vercel.app (preview URLs, if used)
 
 ### Backend on Render
 
