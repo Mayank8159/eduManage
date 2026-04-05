@@ -1,0 +1,119 @@
+{
+  "info": {
+    "name": "School Management API",
+    "description": "Postman collection for EduManage backend APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "teacherId", "value": "" },
+    { "key": "classId", "value": "" },
+    { "key": "studentId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"principal@school.com\",\n  \"password\": \"Password@123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Refresh",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Principal - Teacher Analytics",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/principal/teacher-analytics"
+      }
+    },
+    {
+      "name": "Principal - Activity Logs",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/principal/activity-logs?page=1&limit=10"
+      }
+    },
+    {
+      "name": "Teacher - Classes",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/teacher/classes"
+      }
+    },
+    {
+      "name": "Teacher - Upload Attendance",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/teacher/attendance",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"student\": \"{{studentId}}\",\n  \"classId\": \"{{classId}}\",\n  \"date\": \"2026-04-05T09:00:00.000Z\",\n  \"status\": \"present\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Teacher - Upload Marks",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/teacher/marks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"student\": \"{{studentId}}\",\n  \"classId\": \"{{classId}}\",\n  \"subject\": \"Mathematics\",\n  \"score\": 81,\n  \"maxScore\": 100,\n  \"examType\": \"Weekly Test\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Teacher - Predict Student",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/teacher/classes/{{classId}}/students/{{studentId}}/predict"
+      }
+    },
+    {
+      "name": "Student - Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/student/dashboard"
+      }
+    },
+    {
+      "name": "Notifications",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/notifications?page=1&limit=10"
+      }
+    }
+  ]
+}
