@@ -1,6 +1,7 @@
 import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "date-fns";
 import { ActivityLog } from "../models/ActivityLog";
 import { Attendance } from "../models/Attendance";
+import { ClassModel } from "../models/Class";
 import { Feedback } from "../models/Feedback";
 import { Mark } from "../models/Mark";
 import { TeacherProfile } from "../models/TeacherProfile";
@@ -88,4 +89,72 @@ export async function generateReport(type: "weekly" | "monthly") {
       teacherActivities: activityCount,
     },
   };
+}
+
+export async function principalOverview() {
+  const [teachers, approvedTeachers, students, classes, unassignedClasses, pendingApprovals] = await Promise.all([
+    User.countDocuments({ role: "teacher" }),
+    TeacherProfile.countDocuments({ approved: true }),
+    User.countDocuments({ role: "student" }),
+    ClassModel.countDocuments({}),
+    ClassModel.countDocuments({ teacher: null }),
+    TeacherProfile.countDocuments({ approved: false }),
+  ]);
+
+  return {
+    teachers,
+    approvedTeachers,
+    students,
+    classes,
+    unassignedClasses,
+    pendingApprovals,
+  };
+}
+
+export async function activityTrend(days = 7) {
+  const now = new Date();
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  const windows = Array.from({ length: days }, (_, index) => {
+    const offset = days - 1 - index;
+    const start = new Date(now.getTime() - offset * dayMs);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start.getTime());
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  });
+
+  const trend = await Promise.all(
+    windows.map(async ({ start, end }) => {
+      const [activityCount, attendanceCount, marksCount] = await Promise.all([
+        ActivityLog.countDocuments({ createdAt: { $gte: start, $lte: end } }),
+        Attendance.countDocuments({ createdAt: { $gte: start, $lte: end } }),
+        Mark.countDocuments({ createdAt: { $gte: start, $lte: end } }),
+      ]);
+
+      return {
+        day: start.toLocaleDateString("en-US", { weekday: "short" }),
+        activityCount,
+        attendanceCount,
+        marksCount,
+      };
+    })
+  );
+
+  return trend;
+}
+
+export async function listClasses() {
+  const classes = await ClassModel.find({})
+    .populate("teacher", "name email")
+    .sort({ name: 1, section: 1, subject: 1 });
+
+  return classes.map((item) => ({
+    _id: item._id,
+    name: item.name,
+    section: item.section,
+    subject: item.subject,
+    teacher: item.teacher,
+    studentCount: item.students.length,
+  }));
 }

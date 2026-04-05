@@ -24,6 +24,19 @@ router.get("/teacher-analytics", (0, asyncHandler_1.asyncHandler)(async (_req, r
     const data = await (0, principal_service_1.teacherAnalytics)();
     res.json(data);
 }));
+router.get("/overview", (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
+    const data = await (0, principal_service_1.principalOverview)();
+    res.json(data);
+}));
+router.get("/activity-trend", (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const days = Math.min(Math.max(Number(req.query.days || 7), 3), 31);
+    const data = await (0, principal_service_1.activityTrend)(days);
+    res.json(data);
+}));
+router.get("/classes", (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
+    const data = await (0, principal_service_1.listClasses)();
+    res.json(data);
+}));
 router.get("/activity-logs", (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const { page, limit, action, module, search } = req.query;
     const { skip } = (0, pagination_1.getPagination)(page, limit);
@@ -65,6 +78,9 @@ const assignSchema = zod_1.z.object({
 router.post("/teachers/:teacherId/assign-class", (0, validate_1.validate)(assignSchema), (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const teacherId = String(req.params.teacherId);
     const cls = await Class_1.ClassModel.findByIdAndUpdate(req.body.classId, { teacher: teacherId }, { new: true });
+    if (!cls) {
+        return res.status(404).json({ message: "Class not found" });
+    }
     await TeacherProfile_1.TeacherProfile.findOneAndUpdate({ user: teacherId }, { $addToSet: { assignedClasses: req.body.classId } }, { new: true });
     await Notification_1.Notification.create({
         toUser: teacherId,

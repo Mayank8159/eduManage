@@ -4,7 +4,14 @@ import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
 import { ROLES } from "../constants/roles";
 import { asyncHandler } from "../utils/asyncHandler";
-import { generateReport, listUsers, teacherAnalytics } from "../services/principal.service";
+import {
+  activityTrend,
+  generateReport,
+  listClasses,
+  listUsers,
+  principalOverview,
+  teacherAnalytics,
+} from "../services/principal.service";
 import { ActivityLog } from "../models/ActivityLog";
 import { getPagination } from "../utils/pagination";
 import { TeacherProfile } from "../models/TeacherProfile";
@@ -29,6 +36,31 @@ router.get(
   "/teacher-analytics",
   asyncHandler(async (_req, res) => {
     const data = await teacherAnalytics();
+    res.json(data);
+  })
+);
+
+router.get(
+  "/overview",
+  asyncHandler(async (_req, res) => {
+    const data = await principalOverview();
+    res.json(data);
+  })
+);
+
+router.get(
+  "/activity-trend",
+  asyncHandler(async (req, res) => {
+    const days = Math.min(Math.max(Number(req.query.days || 7), 3), 31);
+    const data = await activityTrend(days);
+    res.json(data);
+  })
+);
+
+router.get(
+  "/classes",
+  asyncHandler(async (_req, res) => {
+    const data = await listClasses();
     res.json(data);
   })
 );
@@ -92,6 +124,11 @@ router.post(
   asyncHandler(async (req, res) => {
     const teacherId = String(req.params.teacherId);
     const cls = await ClassModel.findByIdAndUpdate(req.body.classId, { teacher: teacherId }, { new: true });
+
+    if (!cls) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
     await TeacherProfile.findOneAndUpdate(
       { user: teacherId },
       { $addToSet: { assignedClasses: req.body.classId } },
