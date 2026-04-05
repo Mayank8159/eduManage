@@ -62,9 +62,45 @@ async function seed() {
       password,
       role: ROLES.TEACHER,
     },
+    {
+      name: "Ethan Teacher",
+      email: "teacher5@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
+    {
+      name: "Aria Teacher",
+      email: "teacher6@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
+    {
+      name: "Jack Teacher",
+      email: "teacher7@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
+    {
+      name: "Chloe Teacher",
+      email: "teacher8@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
+    {
+      name: "David Teacher",
+      email: "teacher9@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
+    {
+      name: "Grace Teacher",
+      email: "teacher10@school.com",
+      password,
+      role: ROLES.TEACHER,
+    },
   ]);
 
-  const studentNames = [
+  const baseStudentNames = [
     "Liam",
     "Emma",
     "Olivia",
@@ -80,20 +116,13 @@ async function seed() {
     "James",
     "Mia",
     "Benjamin",
-    "Charlotte",
-    "Henry",
-    "Harper",
-    "Alexander",
-    "Evelyn",
-    "Michael",
-    "Abigail",
-    "Daniel",
-    "Ella",
   ];
 
+  const studentCount = 30;
+
   const students = await User.create(
-    studentNames.map((name, index) => ({
-      name: `${name} Student`,
+    Array.from({ length: studentCount }, (_, index) => ({
+      name: `${baseStudentNames[index % baseStudentNames.length]} Student ${index + 1}`,
       email: `student${index + 1}@school.com`,
       password,
       role: ROLES.STUDENT,
@@ -147,7 +176,37 @@ async function seed() {
       name: "Class 12",
       section: "A",
       subject: "Economics",
-      teacher: null,
+      teacher: teachers[4]._id,
+    },
+    {
+      name: "Class 11",
+      section: "B",
+      subject: "Physics",
+      teacher: teachers[5]._id,
+    },
+    {
+      name: "Class 12",
+      section: "B",
+      subject: "Biology",
+      teacher: teachers[6]._id,
+    },
+    {
+      name: "Class 7",
+      section: "A",
+      subject: "English",
+      teacher: teachers[7]._id,
+    },
+    {
+      name: "Class 7",
+      section: "B",
+      subject: "Mathematics",
+      teacher: teachers[8]._id,
+    },
+    {
+      name: "Class 6",
+      section: "A",
+      subject: "Science",
+      teacher: teachers[9]._id,
     },
   ]);
 
@@ -155,13 +214,13 @@ async function seed() {
   classes.forEach((cls) => classStudentMap.set(String(cls._id), []));
 
   students.forEach((student, index) => {
-    const classIndex = index % 6;
+    const classIndex = index % classes.length;
     const targetClass = classes[classIndex];
     classStudentMap.get(String(targetClass._id))?.push(String(student._id));
   });
 
   await Promise.all(
-    classes.slice(0, 6).map((cls) =>
+    classes.map((cls) =>
       ClassModel.findByIdAndUpdate(cls._id, {
         students: classStudentMap.get(String(cls._id)) || [],
       })
@@ -173,9 +232,9 @@ async function seed() {
       const assigned = classes.filter((cls) => String(cls.teacher || "") === String(teacher._id));
       return {
         user: teacher._id,
-        employeeId: `T-10${index + 1}`,
+        employeeId: `T-${String(index + 1).padStart(4, "0")}`,
         subjects: assigned.map((cls) => cls.subject),
-        approved: index !== 2,
+        approved: index % 4 !== 2,
         assignedClasses: assigned.map((cls) => cls._id),
       };
     })
@@ -183,7 +242,7 @@ async function seed() {
 
   await StudentProfile.create(
     students.map((student, index) => {
-      const classIndex = index % 6;
+      const classIndex = index % classes.length;
       return {
         user: student._id,
         rollNumber: `S-20${String(index + 1).padStart(2, "0")}`,
@@ -202,6 +261,8 @@ async function seed() {
 
     for (const cls of classes.slice(0, 6)) {
       const studentIds = classStudentMap.get(String(cls._id)) || [];
+
+      if (!cls.teacher) continue;
 
       for (const studentId of studentIds) {
         const present = Math.random() > 0.12;
@@ -232,7 +293,7 @@ async function seed() {
   await Mark.create(marksRecords);
 
   const feedbackRecords: any[] = students.map((student, index) => {
-    const cls = classes[index % 6];
+    const cls = classes[index % classes.length];
     return {
       teacher: cls.teacher as any,
       student: student._id,
