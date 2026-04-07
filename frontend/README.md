@@ -12,6 +12,10 @@ Create .env.local from .env.example:
 
 - NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
 
+For production deployment, set:
+
+- NEXT_PUBLIC_API_URL=https://edumanage-u1ks.onrender.com/api/v1
+
 ## Role Dashboards
 
 - Principal: analytics, logs, reports, teacher directory
