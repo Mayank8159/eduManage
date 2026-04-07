@@ -7,6 +7,8 @@ exports.env = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const required = ["MONGO_URI", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"];
+const DEFAULT_FRONTEND_URLS = ["http://localhost:3000", "https://edu-manage-xi.vercel.app"];
+const normalizeUrl = (url) => url.trim().replace(/\/+$/, "").toLowerCase();
 for (const key of required) {
     if (!process.env[key]) {
         throw new Error(`Missing required environment variable: ${key}`);
@@ -20,8 +22,11 @@ exports.env = {
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
     refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
-    frontendUrls: (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:3000")
-        .split(",")
-        .map((url) => url.trim())
-        .filter(Boolean),
+    frontendUrls: [
+        ...(process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "")
+            .split(",")
+            .map((url) => url.trim())
+            .filter(Boolean),
+        ...DEFAULT_FRONTEND_URLS,
+    ].map(normalizeUrl),
 };

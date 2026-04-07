@@ -14,6 +14,20 @@ const env_1 = require("./config/env");
 const routes_1 = __importDefault(require("./routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const app = (0, express_1.default)();
+const normalizeOrigin = (value) => value.trim().replace(/\/+$/, "").toLowerCase();
+const allowedOrigins = new Set(env_1.env.frontendUrls.map(normalizeOrigin));
+const isAllowedOrigin = (origin) => {
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (allowedOrigins.has(normalizedOrigin)) {
+        return true;
+    }
+    // Allow Vercel preview URLs when the main Vercel deployment is in allowlist.
+    if (normalizedOrigin.endsWith(".vercel.app") &&
+        Array.from(allowedOrigins).some((allowed) => allowed.endsWith(".vercel.app"))) {
+        return true;
+    }
+    return false;
+};
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
     origin(origin, callback) {
@@ -21,13 +35,15 @@ app.use((0, cors_1.default)({
             callback(null, true);
             return;
         }
-        if (env_1.env.frontendUrls.includes(origin)) {
+        if (isAllowedOrigin(origin)) {
             callback(null, true);
             return;
         }
         callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use((0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,

@@ -10,6 +10,26 @@ import apiRoutes from "./routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
+const normalizeOrigin = (value: string) => value.trim().replace(/\/+$/, "").toLowerCase();
+const allowedOrigins = new Set(env.frontendUrls.map(normalizeOrigin));
+
+const isAllowedOrigin = (origin: string) => {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (allowedOrigins.has(normalizedOrigin)) {
+    return true;
+  }
+
+  // Allow Vercel preview URLs when the main Vercel deployment is in allowlist.
+  if (
+    normalizedOrigin.endsWith(".vercel.app") &&
+    Array.from(allowedOrigins).some((allowed) => allowed.endsWith(".vercel.app"))
+  ) {
+    return true;
+  }
+
+  return false;
+};
 
 app.use(helmet());
 app.use(
@@ -20,14 +40,16 @@ app.use(
         return;
       }
 
-      if (env.frontendUrls.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
 
-      callback(new Error(`CORS blocked for origin: ${origin}`));
+      callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(
