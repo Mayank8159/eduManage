@@ -16,13 +16,14 @@ export async function registerUser(input: {
   password: string;
   role: Role;
 }) {
-  const exists = await User.findOne({ email: input.email });
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const exists = await User.findOne({ email: normalizedEmail });
   if (exists) {
     return { status: StatusCodes.CONFLICT, data: { message: "Email already exists" } };
   }
 
   const hashedPassword = await bcrypt.hash(input.password, 10);
-  const user = await User.create({ ...input, password: hashedPassword });
+  const user = await User.create({ ...input, email: normalizedEmail, password: hashedPassword });
 
   return {
     status: StatusCodes.CREATED,
@@ -39,7 +40,8 @@ export async function registerUser(input: {
 }
 
 export async function loginUser(input: { email: string; password: string }) {
-  const user = await User.findOne({ email: input.email });
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
     return { status: StatusCodes.UNAUTHORIZED, data: { message: "Invalid credentials" } };
   }

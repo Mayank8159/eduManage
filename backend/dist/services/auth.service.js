@@ -17,12 +17,13 @@ function hashToken(token) {
     return crypto_1.default.createHash("sha256").update(token).digest("hex");
 }
 async function registerUser(input) {
-    const exists = await User_1.User.findOne({ email: input.email });
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const exists = await User_1.User.findOne({ email: normalizedEmail });
     if (exists) {
         return { status: http_status_codes_1.StatusCodes.CONFLICT, data: { message: "Email already exists" } };
     }
     const hashedPassword = await bcryptjs_1.default.hash(input.password, 10);
-    const user = await User_1.User.create({ ...input, password: hashedPassword });
+    const user = await User_1.User.create({ ...input, email: normalizedEmail, password: hashedPassword });
     return {
         status: http_status_codes_1.StatusCodes.CREATED,
         data: {
@@ -37,7 +38,8 @@ async function registerUser(input) {
     };
 }
 async function loginUser(input) {
-    const user = await User_1.User.findOne({ email: input.email });
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const user = await User_1.User.findOne({ email: normalizedEmail });
     if (!user) {
         return { status: http_status_codes_1.StatusCodes.UNAUTHORIZED, data: { message: "Invalid credentials" } };
     }
