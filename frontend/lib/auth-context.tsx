@@ -39,6 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session]);
 
   useEffect(() => {
+    if (session?.accessToken) {
+      api.defaults.headers.common.Authorization = `Bearer ${session.accessToken}`;
+      return;
+    }
+
+    delete api.defaults.headers.common.Authorization;
+  }, [session?.accessToken]);
+
+  useEffect(() => {
     const requestInterceptor = api.interceptors.request.use((config) => {
       if (session?.accessToken) {
         config.headers = config.headers || {};
@@ -93,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const { data } = await api.post("/auth/login", { email, password });
+      api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
       setSession({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
@@ -114,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setSession(null);
+    delete api.defaults.headers.common.Authorization;
     localStorage.removeItem(SESSION_KEY);
   };
 

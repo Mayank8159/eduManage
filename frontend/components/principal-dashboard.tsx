@@ -40,6 +40,7 @@ interface ClassItem {
 export function PrincipalDashboard() {
   const searchParams = useSearchParams();
   const { token } = useAuth();
+  const [chartsReady, setChartsReady] = useState(false);
   const [analytics, setAnalytics] = useState<TeacherAnalytics[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [trend, setTrend] = useState<any[]>([]);
@@ -62,20 +63,25 @@ export function PrincipalDashboard() {
   const teacherLimit = 8;
   const logLimit = 8;
 
+  useEffect(() => {
+    setChartsReady(true);
+  }, []);
+
   const loadDashboardData = async () => {
     if (!token) return;
 
     try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       const [analyticsRes, logsRes, teachersRes, studentsRes, reportRes, trendRes, classesRes, overviewRes] =
         await Promise.all([
-          api.get("/principal/teacher-analytics"),
-          api.get(`/principal/activity-logs?page=${logPage}&limit=${logLimit}`),
-          api.get(`/principal/users?role=teacher&page=${teacherPage}&limit=${teacherLimit}&search=${search}`),
-          api.get("/principal/users?role=student&page=1&limit=50"),
-          api.get(`/principal/reports?type=${reportType}`),
-          api.get("/principal/activity-trend?days=7"),
-          api.get("/principal/classes"),
-          api.get("/principal/overview"),
+          api.get("/principal/teacher-analytics", config),
+          api.get(`/principal/activity-logs?page=${logPage}&limit=${logLimit}`, config),
+          api.get(`/principal/users?role=teacher&page=${teacherPage}&limit=${teacherLimit}&search=${search}`, config),
+          api.get("/principal/users?role=student&page=1&limit=50", config),
+          api.get(`/principal/reports?type=${reportType}`, config),
+          api.get("/principal/activity-trend?days=7", config),
+          api.get("/principal/classes", config),
+          api.get("/principal/overview", config),
         ]);
 
       setAnalytics(analyticsRes.data || []);
@@ -195,6 +201,7 @@ export function PrincipalDashboard() {
           </div>
 
           <div className="h-80 min-w-0">
+            {chartsReady ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={320} minHeight={240}>
               <BarChart data={analytics}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -207,6 +214,7 @@ export function PrincipalDashboard() {
                 <Bar dataKey="feedbackScore" fill="#ca8a04" />
               </BarChart>
             </ResponsiveContainer>
+            ) : <div className="h-full min-h-[240px] w-full" />}
           </div>
         </div>
 
@@ -226,6 +234,7 @@ export function PrincipalDashboard() {
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Weekly Activity Trend</h3>
         <div className="h-72 min-w-0">
+          {chartsReady ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={320} minHeight={220}>
             <LineChart data={trend}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -238,6 +247,7 @@ export function PrincipalDashboard() {
               <Line type="monotone" dataKey="marksCount" stroke="#ca8a04" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
+          ) : <div className="h-full min-h-[220px] w-full" />}
         </div>
       </section>
       ) : null}

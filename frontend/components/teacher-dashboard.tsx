@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 export function TeacherDashboard() {
   const searchParams = useSearchParams();
   const { token } = useAuth();
+  const [chartsReady, setChartsReady] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [classData, setClassData] = useState<any>(null);
@@ -16,10 +17,14 @@ export function TeacherDashboard() {
   const activeSection = searchParams.get("section") || "dashboard";
 
   useEffect(() => {
+    setChartsReady(true);
+  }, []);
+
+  useEffect(() => {
     if (!token) return;
 
     api
-      .get("/teacher/classes")
+      .get("/teacher/classes", { headers: { Authorization: `Bearer ${token}` } })
       .then(({ data }) => {
         setClasses(data || []);
         if (data?.length) setSelectedClass(data[0]._id);
@@ -31,7 +36,7 @@ export function TeacherDashboard() {
     if (!token || !selectedClass) return;
 
     api
-      .get(`/teacher/classes/${selectedClass}/students`)
+      .get(`/teacher/classes/${selectedClass}/students`, { headers: { Authorization: `Bearer ${token}` } })
       .then(({ data }) => setClassData(data))
       .catch(() => setClassData(null));
   }, [token, selectedClass]);
@@ -46,7 +51,8 @@ export function TeacherDashboard() {
         classId: selectedClass,
         date: new Date().toISOString(),
         status,
-      }
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
   };
 
@@ -62,14 +68,17 @@ export function TeacherDashboard() {
         score,
         maxScore: 100,
         examType: "Class Assessment",
-      }
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
   };
 
   const runPrediction = async (studentId: string) => {
     if (!token || !selectedClass) return;
 
-    const { data } = await api.get(`/teacher/classes/${selectedClass}/students/${studentId}/predict`);
+    const { data } = await api.get(`/teacher/classes/${selectedClass}/students/${studentId}/predict`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     setPrediction(data);
   };
@@ -149,6 +158,7 @@ export function TeacherDashboard() {
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Class Marks Trend</h3>
         <div className="h-72">
+          {chartsReady ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={220}>
             <LineChart
               data={
@@ -164,6 +174,7 @@ export function TeacherDashboard() {
               <Line dataKey="marksTrend" stroke="#0e7490" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
+          ) : <div className="h-full min-h-[220px] w-full" />}
         </div>
       </section>
       ) : null}

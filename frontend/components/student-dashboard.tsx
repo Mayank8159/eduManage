@@ -9,9 +9,14 @@ import { useAuth } from "@/lib/auth-context";
 export function StudentDashboard() {
   const searchParams = useSearchParams();
   const { token } = useAuth();
+  const [chartsReady, setChartsReady] = useState(false);
   const [dashboard, setDashboard] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const activeSection = searchParams.get("section") || "dashboard";
+
+  useEffect(() => {
+    setChartsReady(true);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -21,8 +26,8 @@ export function StudentDashboard() {
     const loadStudentData = async () => {
       try {
         const [dashboardRes, notificationsRes] = await Promise.all([
-          api.get("/student/dashboard"),
-          api.get("/notifications?page=1&limit=6"),
+          api.get("/student/dashboard", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/notifications?page=1&limit=6", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         if (!active) return;
@@ -40,7 +45,7 @@ export function StudentDashboard() {
 
     const interval = setInterval(() => {
       void api
-        .get("/notifications?page=1&limit=6")
+        .get("/notifications?page=1&limit=6", { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => {
           if (!active) return;
           setNotifications(res.data.items || []);
@@ -76,6 +81,7 @@ export function StudentDashboard() {
       <section className="rounded-2xl bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-semibold text-slate-800">Performance Chart</h3>
         <div className="h-72 min-w-0">
+          {chartsReady ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={240}>
             <AreaChart
               data={
@@ -91,6 +97,7 @@ export function StudentDashboard() {
               <Area dataKey="score" stroke="#16a34a" fill="#bbf7d0" />
             </AreaChart>
           </ResponsiveContainer>
+          ) : <div className="h-full min-h-[240px] w-full" />}
         </div>
       </section>
       ) : null}
